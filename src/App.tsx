@@ -1,113 +1,8 @@
-// import React, { useEffect, useState } from 'react';
-// import logo from './logo.svg';
-// import './App.css';
-// import { render } from "react-dom";
-// import { ReactGrid, Column, Row, CellChange, TextCell } from "@silevis/reactgrid";
-// import "@silevis/reactgrid/styles.css";
-// import { AppContainer, ButtonContainer } from './App.styles';
-// import { Button, Input } from '@mui/material';
-
-// interface Budget {
-//   type: string;
-//   date1: string;
-//   date2: string;
-// }
-
-
-
-// function App() {
-//   const getBudget = (): Budget[] => [
-//     { type: "Raw Cont %", date1: "", date2: "" },
-//     { type: "Contribution %", date1: "", date2: "" },
-//     { type: "Contribution", date1: "", date2: "" }
-//   ];
-
-//   const [budget, setBudget] = useState<Budget[]>(getBudget());
-//   const [rows, setRows] = useState<Row[]>([]);
-//   const [columns, setColumns] = useState<Column[]>([]);
-  
-  
-//   const getColumns = (): Column[] => [
-//     { columnId: "type", width: 150 },
-//     { columnId: "date1", width: 150 },
-//     { columnId: "date2", width: 150 }
-//   ];
-  
-//   const headerRow: Row = {
-//     rowId: "header",
-//     cells: [
-//       { type: "header", text: "Type" },
-//       { type: "header", text: "9/30/19" },
-//       { type: "header", text: "12/31/19" }
-//     ]
-//   };
-  
-//   const getRows = (people: Budget[]): Row[] => [
-//     headerRow,
-//     ...people.map<Row>((person, idx) => ({
-//       rowId: idx,
-//       cells: [
-//         { type: "text", text: person.type },
-//         { type: "text", text: person.date1 },
-//         { type: "text", text: person.date2 }
-//       ]
-//     }))
-//   ];
-
-//   const applyChangesToPeople = (
-//     changes: CellChange<TextCell>[],
-//     prevPeople: Budget[]
-//   ): Budget[] => {
-//     changes.forEach((change) => {
-//       const personIndex = change.rowId;
-//       const fieldName = change.columnId;
-//       // @ts-ignore
-//       prevPeople[personIndex][fieldName] = change.newCell.text;
-//     });
-//     return [...prevPeople];
-//   };
-
-//   const handleChanges = (changes: CellChange<TextCell>[]) => { 
-//     setBudget((prevPeople) => applyChangesToPeople(changes, prevPeople)); 
-//   }; 
-
-//   useEffect(() =>{
-//     setRows(getRows(budget));
-//     setColumns(getColumns());
-//   }, [budget])
-
-//   // const handleAddRow = () => {
-//   //   setBudget(prev => [...prev, getItem()])
-//   // }
-
-//   // const getItem = () => {
-//   //   let item: Budget = {};
-//   //   columns.forEach(col => {
-//   //     // @ts-ignore
-//   //     item[col.columnId] = "";
-//   //   });
-//   //   return item;
-//   // }
-//   return (
-//     <AppContainer>
-//       <ButtonContainer>
-//         <h1>Projections</h1>
-//         {/* <Button color="primary" variant="contained">Add Row</Button>
-//         <Button color="secondary" variant="outlined">Add Column</Button> */}
-//         {/* <Input placeholder="Column Name"></Input> */}
-//       </ButtonContainer>
-//       {/* @ts-ignore */}
-//       <ReactGrid rows={rows} columns={columns} onCellsChanged={handleChanges} />
-//     </AppContainer>
-//   );
-// }
-
-// export default App;
-import { Box, Button, Input, Tab, Tabs, Typography } from "@mui/material";
-import { useState } from "react";
-import Spreadsheet from "react-spreadsheet";
+import { Box, Button, Input, Tab, Tabs } from "@mui/material";
+import { useCallback, useState } from "react";
+import Spreadsheet, { RowIndicatorComponent } from "react-spreadsheet";
 import './App.css';
-import { AppContainer, ButtonContainer } from "./App.styles";
+import { AppContainer, ButtonContainer, FreezePaneContainer, SpeadsheetContainer, SpreadsheetWrapper } from "./App.styles";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -142,14 +37,125 @@ function a11yProps(index: number) {
   };
 }
 
+function getFreezePane(fundname: string) {
+  return [
+    [
+      { value: "Year", readOnly: true, className: 'header' },
+      { value: "", readOnly: true, className: 'header' },
+    ],
+    [
+      { value: "Quarters", readOnly: true, className: 'header' },
+      { value: "", readOnly: true, className: 'header' },
+    ],
+    [
+      { value: "Dates", readOnly: true, className: 'header' },
+      { value: "", readOnly: true, className: 'header' },
+    ],
+    [
+      { value: "FUND", readOnly: true, className: 'sub-heading' },
+      { value: "Type", readOnly: true, className: 'sub-heading' },
+    ],
+    [
+      { value: fundname, readOnly: true },
+      { value: 'Raw Cont %', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Contribution %', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Contribution', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Distribution', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'NAV', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Commitment Remaining', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Cumulative Cash Flow', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Net Cash Flow', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Growth (before Distribution)', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Distribution %', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Raw Dist. %', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Interest True-up Contribution', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Contributions ITD', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Distributions ITD', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Contributions ITD (incl. Interest True-up)', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Distributions ITD (incl. Interest True-up)', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Paid-in %', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Paid-in % (inclu. Interest True-up)', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'DPI', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'DPI (inclu. Interest True-up)', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'TVPI', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'TVPI (inclu. Interest True-up)', readOnly: true },
+    ],
+    [
+      { value: '', readOnly: true },
+      { value: 'Break Even Period', readOnly: true },
+    ],
+  ]
+}
+
 const addSheet = (title: string) => {
   return {
     title: title, 
     data: [
       // header start
       [
-        { value: "Year", readOnly: true, className: 'header' },
-        { value: "", readOnly: true, className: 'header' },
         { value: "", readOnly: true, className: 'header' },
         { value: "1", readOnly: true, className: 'header' },
         { value: "1", readOnly: true, className: 'header' },
@@ -203,8 +209,6 @@ const addSheet = (title: string) => {
       // header end
       // header start
       [
-        { value: "Quarters", readOnly: true, className: 'header' },
-        { value: "", readOnly: true, className: 'header' },
         { value: "0", readOnly: true, className: 'header' },
         { value: "1", readOnly: true, className: 'header' },
         { value: "2", readOnly: true, className: 'header' },
@@ -258,8 +262,6 @@ const addSheet = (title: string) => {
       // header end
       // header start
       [
-        { value: "Dates", readOnly: true, className: 'header' },
-        { value: "", readOnly: true, className: 'header' },
         { value: "9/30/19", readOnly: true, className: 'header' },
         { value: "12/31/19", readOnly: true, className: 'header' },
         { value: "03/31/20", readOnly: true, className: 'header' },
@@ -310,152 +312,127 @@ const addSheet = (title: string) => {
         { value: "06/30/31", readOnly: true, className: 'header' },
         { value: "09/30/31", readOnly: true, className: 'header' },
       ],
+      [
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
+      [
+        { value: '' },
+      ],
       // header end
-      [
-        { value: "FUND", readOnly: true, className: 'sub-heading' },
-        { value: "Type", readOnly: true, className: 'sub-heading' },
-      ],
-      [
-        { value: 'TA XIII', readOnly: true },
-        { value: 'Raw Cont %', readOnly: true },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-        { value: "" },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Contribution %', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Contribution', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Distribution', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'NAV', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Commitment Remaining', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Cumulative Cash Flow', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Net Cash Flow', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Growth (before Distribution)', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Distribution %', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Raw Dist. %', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Interest True-up Contribution', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Contributions ITD', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Distributions ITD', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Contributions ITD (incl. Interest True-up)', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Distributions ITD (incl. Interest True-up)', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Paid-in %', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Paid-in % (inclu. Interest True-up)', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'DPI', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'DPI (inclu. Interest True-up)', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'TVPI', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'TVPI (inclu. Interest True-up)', readOnly: true },
-      ],
-      [
-        { value: '', readOnly: true },
-        { value: 'Break Even Period', readOnly: true },
-      ],
     ]
   }
 }
@@ -475,6 +452,8 @@ const App = () => {
   const [value, setValue] = useState(0);
   const [fundValue, setFundValue] = useState(0);
   const [fundName, setFundName] = useState('');
+  const [selectedRow, setSelectedRow] = useState(0);
+
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     console.log(newValue);
@@ -547,7 +526,14 @@ const App = () => {
             </Tabs>
               {d && d.adjustments.map((a: any, j: number) => (
                 <TabPanel key={j} value={value} index={j}>
-                  <Spreadsheet data={a.data} onChange={(data) => handleChange(data, i, j, a.title)}/>
+                  <SpreadsheetWrapper>
+                    <FreezePaneContainer>
+                      <Spreadsheet data={getFreezePane(d.fundName)} hideColumnIndicators hideRowIndicators/>
+                    </FreezePaneContainer>
+                    <SpeadsheetContainer>
+                      <Spreadsheet data={a.data} onChange={(data) => handleChange(data, i, j, a.title)}  hideColumnIndicators  hideRowIndicators/>
+                    </SpeadsheetContainer>
+                  </SpreadsheetWrapper>
                 </TabPanel>
               ))}
           </>}
